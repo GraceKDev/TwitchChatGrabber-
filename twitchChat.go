@@ -2,10 +2,11 @@ package main
 
 import (
 	"log"
-	"os"
+	"net/http"
+
+	"twitchChat/apiGateway"
 
 	"github.com/joho/godotenv"
-	"twitchChat/api"
 )
 
 func main() {
@@ -13,7 +14,10 @@ func main() {
 		log.Fatal("error loading .env file")
 	}
 
-	clientID := os.Getenv("TWITCH_CLIENT_ID")
-
-	api.GetVideoCommentsByOffset(clientID, "2754561063", 60)
+	// clientID := os.Getenv("TWITCH_CLIENT_ID")
+	apiGateway.SetupRoutes()
+	log.Println("Server listening on :8080")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }
