@@ -49,6 +49,7 @@ func GetVideoCommentsByOffset(clientId string, videoId string, offset int) {
 	currentOffset := offset
 	client := &http.Client{}
 	var allEdges []CommentEdge
+	users := map[string]int{}
 	for currentOffset <= 10000 {
 		reqBody := fmt.Sprintf(`[
 		{
@@ -94,10 +95,17 @@ func GetVideoCommentsByOffset(clientId string, videoId string, offset int) {
 		if len(edges) == 0 {
 			break
 		}
+		for _, edge := range edges {
+			user := edge.Node.Commenter.DisplayName
+			users[user]++
+		}
 		allEdges = append(allEdges, edges...)
 		currentOffset = allEdges[len(allEdges)-1].Node.ContentOffsetSeconds + 1
 	}
-	out, err := json.MarshalIndent(allEdges, "", "    ")
+	out, err := json.MarshalIndent(struct {
+		Comments []CommentEdge  `json:"comments"`
+		Users    map[string]int `json:"users"`
+	}{Comments: allEdges, Users: users}, "", "    ")
 	if err != nil {
 		log.Fatal(err)
 	}
