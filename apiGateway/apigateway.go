@@ -120,9 +120,9 @@ func SetupRoutes() {
 			offset = parsed
 		}
 
-		api.GetVideoCommentsByOffset(os.Getenv("TWITCH_CLIENT_ID"), videoId, offset)
+		out := api.GetVideoCommentsByOffset(os.Getenv("TWITCH_CLIENT_ID"), videoId, offset)
 		res.WriteHeader(http.StatusOK)
-		fmt.Fprintln(res, "OK")
+		fmt.Fprintln(res, string(out))
 	}))
 
 	http.Handle(
