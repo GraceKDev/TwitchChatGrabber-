@@ -1,4 +1,4 @@
-package api
+package GetVideoComments
 
 import (
 	"encoding/json"
@@ -98,36 +98,27 @@ func GetVideoCommentsByOffset(clientId string, videoId string, offset int) []byt
 
 		req.Header.Set("Client-ID", clientId)
 		req.Header.Set("Content-Type", "application/json")
-
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		body, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		var parsed []twitchResponse
 		if err := json.Unmarshal(body, &parsed); err != nil {
 			log.Fatal(err)
 		}
-
 		edges := parsed[0].Data.Video.Comments.Edges
-
-		// no more comments
 		if len(edges) == 0 {
 			break
 		}
-
 		prevOffset := currentOffset
-
 		for _, edge := range edges {
 			user := edge.Node.Commenter.DisplayName
 			users[user]++
-
 			allEdges = append(allEdges, OutputEdge{
 				ID:                   edge.Node.ID,
 				Commenter:            edge.Node.Commenter,
@@ -136,10 +127,7 @@ func GetVideoCommentsByOffset(clientId string, videoId string, offset int) []byt
 				Message:              edge.Node.Message,
 			})
 		}
-
 		currentOffset = edges[len(edges)-1].Node.ContentOffsetSeconds + 1
-
-		// Twitch stopped giving newer data
 		if currentOffset <= prevOffset {
 			break
 		}

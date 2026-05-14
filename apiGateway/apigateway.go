@@ -8,7 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"twitchChat/api"
+	GetIsChannelLive "twitchChat/GQL/GetChannelLive"
+	"twitchChat/GQL/GetVideoComments"
 )
 
 // rateLimiter tracks request counts per IP within a sliding window.
@@ -120,9 +121,25 @@ func SetupRoutes() {
 			offset = parsed
 		}
 
-		out := api.GetVideoCommentsByOffset(os.Getenv("TWITCH_CLIENT_ID"), videoId, offset)
+		out := GetVideoComments.GetVideoCommentsByOffset(os.Getenv("TWITCH_CLIENT_ID"), videoId, offset)
 		res.WriteHeader(http.StatusOK)
 		fmt.Fprintln(res, string(out))
+	}))
+
+	privateMux.Handle("/getIsChannelLive", http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodGet {
+			http.Error(res, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		channelName := req.URL.Query().Get("channelName")
+		if channelName == "" {
+			http.Error(res, "Missing required query param: channelName", http.StatusBadRequest)
+			return
+		}
+		out := GetIsChannelLive.GetIsChannelLive(os.Getenv("TWITCH_CLIENT_ID"), channelName)
+		fmt.Fprintln(res, string(out))
+
 	}))
 
 	http.Handle(
